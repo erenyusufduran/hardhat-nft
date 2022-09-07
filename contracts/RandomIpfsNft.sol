@@ -8,7 +8,15 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // When we mint an NFT, we will trigger a Chainlink VRF call to get us a random number,
 // using that number, we will get a random NFT
 
+error RandomIpfsNft__RangeOutOfBounds;
+
 contract RandomIpfsNft is VRFConsumerBaseV2, ERC721 {
+  enum Breed {
+    PUG,
+    SHIBA_INU,
+    ST_BERNARD
+  }
+
   VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
   uint64 private immutable i_subscriptionId;
   bytes32 private immutable i_gasLane;
@@ -21,6 +29,7 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721 {
 
   // NFT Variables
   uint256 public s_tokenCounter;
+  uint256 internal constant MAX_CHANCE_VALUE = 60;
 
   constructor(
     address vrfCoordinatorV2,
@@ -45,14 +54,31 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721 {
     s_requestIdToSender[requestId] = msg.sender;
   }
 
-  function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
-    internal
-    override
-  {
+  function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
     address dogOwner = s_requestIdToSender[requestId];
     uint256 newTokenId = s_tokenCounter;
     _safeMint(dogOwner, newTokenId);
+    uint256 moddedRng = randomWords[0] % MAX_CHANCE_VALUE;
+
+    Breed dogBreed = getBreedFromModdedRng(moddedRng);
+    _safeMint(dogOwner, newTokenId);
   }
 
-  function tokenURI(uint256) public pure override returns(string memory) {}
+  function getBreedFromModdedRng(uint256 moddedRng) public pure returns (Breed) {
+    uint256 cumulativeSum = 0;
+    uint256[3] memory chanceArray = getChanceArray();
+    for (uint256 i = 0; i < chanceArray.length; i++) {
+      if (moddedRng >= cumulativeSum && moddedRng < cumulativeSum + chanceArray[i]) {
+        return Breed(i);
+      }
+      cumulativeSum += chanceArray[i];
+    }
+    revert RandomIpfsNft__RangeOutOfBounds();
+  }
+
+  function getChanceArray() public pure returns (uint256[3] memory) {
+    return [10, 30, MAX_CHANCE_VALUE];
+  }
+
+  function tokenURI(uint256) public pure override returns (string memory) {}
 }
