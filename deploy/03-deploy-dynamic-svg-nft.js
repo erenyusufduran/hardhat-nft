@@ -17,10 +17,11 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   } else {
     ethUsdPriceFeedAddress = networkConfig[chainId].ethUsdPriceFeed;
   }
+  const lowSVG = await fs.readFileSync("./images/dynamicNft/frown.svg", { encoding: "utf8" });
+  const highSVG = await fs.readFileSync("./images/dynamicNft/happy.svg", { encoding: "utf8" });
   log("--------------------------");
-  const lowSVG = await fs.readFileSync("./images/dynamicNFT/frown.svg", { encoding: "utf-8" });
-  const highSVG = await fs.readFileSync("./images/dynamicNFT/happy.svg", { encoding: "utf-8" });
-  args = [ethUsdPriceFeedAddress, lowSVG, highSVG];
+
+  const args = [ethUsdPriceFeedAddress, lowSVG, highSVG];
   const dynamicSvgNft = await deploy("DynamicSvgNft", {
     from: deployer,
     args: args,
@@ -34,4 +35,4 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   }
 };
 
-module.exports = ["all", "dynamicsvg", "main"];
+module.exports.tags = ["all", "dynamicsvg", "main"];
