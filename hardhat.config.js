@@ -44,13 +44,14 @@ module.exports = {
       { version: "0.4.19" },
       { version: "0.6.12" },
       { version: "0.6.6" },
+      { version: "0.6.0" },
     ],
   },
   namedAccounts: {
     deployer: {
       default: 0,
     },
-    player: {
+    users: {
       default: 1,
     },
   },
